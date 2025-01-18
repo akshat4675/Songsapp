@@ -5,10 +5,10 @@ from pydantic import BaseModel
 from sklearn.neighbors import NearestNeighbors
 from fastapi.middleware.cors import CORSMiddleware
 
-# Initialize the FastAPI app
+# Initialize FastAPI app
 app = FastAPI()
 
-# Add CORS Middleware
+# Add CORS Middleware to allow frontend calls
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000"],  # Frontend URL
@@ -42,6 +42,10 @@ class RecommendationRequest(BaseModel):
 class RecommendationResponse(BaseModel):
     recommendations: list
 
+class ChatRequest(BaseModel):
+    query: str
+
+# Endpoint to recommend songs
 @app.post("/recommend", response_model=RecommendationResponse)
 async def recommend_songs(request: RecommendationRequest):
     song_id = request.song_id
@@ -59,4 +63,19 @@ async def recommend_songs(request: RecommendationRequest):
         recommended_songs.append(recommended_song)
 
     return {"recommendations": recommended_songs}
+
+# Endpoint to handle chatbot queries
+@app.post("/chatbot")
+async def handle_chatbot_query(request: ChatRequest):
+    user_query = request.query.lower()
+
+    # Dummy responses based on user query
+    if "song" in user_query:
+        return {"response": "I can recommend songs! Please enter a song ID to get recommendations."}
+    elif "recommend" in user_query:
+        return {"response": "You can ask for recommendations based on song ID!"}
+    elif "thank you" in user_query:
+        return {"response": "You're welcome! Let me know if you need any more recommendations."}
+    else:
+        return {"response": "Sorry, I didn't understand that. Can you please rephrase?"}
 
