@@ -69,13 +69,25 @@ async def recommend_songs(request: RecommendationRequest):
 async def handle_chatbot_query(request: ChatRequest):
     user_query = request.query.lower()
 
-    # Dummy responses based on user query
-    if "song" in user_query:
-        return {"response": "I can recommend songs! Please enter a song ID to get recommendations."}
-    elif "recommend" in user_query:
-        return {"response": "You can ask for recommendations based on song ID!"}
+    # If the query asks for song recommendations, process the song ID
+    if "recommend" in user_query or "song" in user_query:
+        # Extract song ID from user query (you can improve this regex if needed)
+        song_id = None
+        for word in user_query.split():
+            if word.isdigit():  # Check if there's a number (song ID) in the query
+                song_id = int(word)
+                break
+
+        if song_id and song_id in songs_data['song_id'].values:
+            # Call recommendation endpoint
+            recommended_songs = await recommend_songs(RecommendationRequest(song_id=song_id))
+            recommendations = recommended_songs['recommendations']
+            return {"response": f"Here are some recommendations for Song ID {song_id}: {', '.join(recommendations)}"}
+        else:
+            return {"response": "Sorry, I couldn't find a valid song ID in your query. Please provide a valid song ID."}
+    
     elif "thank you" in user_query:
         return {"response": "You're welcome! Let me know if you need any more recommendations."}
+    
     else:
         return {"response": "Sorry, I didn't understand that. Can you please rephrase?"}
-
